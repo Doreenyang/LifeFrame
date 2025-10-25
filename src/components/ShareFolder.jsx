@@ -103,7 +103,7 @@ export default function ShareFolder({ photos }) {
       </div>
 
       <div className="mt-3 flex gap-2">
-        <button className="px-3 py-2 bg-indigo-600 text-white rounded" onClick={generateShare} disabled={busy || !photos || photos.length===0}>{busy ? 'Sharing…' : 'Share / Export'}</button>
+        <button className="px-3 py-2 bg-rose-500 text-white rounded" onClick={generateShare} disabled={busy || !photos || photos.length===0}>{busy ? 'Sharing…' : 'Share / Export'}</button>
         <button className="px-3 py-2 bg-gray-100 rounded" onClick={copyJSON}>Copy JSON</button>
         <button className="px-3 py-2 bg-gray-100 rounded" onClick={unshare}>Unshare</button>
       </div>

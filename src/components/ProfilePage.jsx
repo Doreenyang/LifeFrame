@@ -37,7 +37,7 @@ export default function ProfilePage({ photosCount, photos = [], onSavePhoto }) {
           <div key={p} className="flex items-center justify-between bg-white p-3 rounded shadow-sm">
             <div>{p}</div>
             <div>
-              <button className="px-3 py-1 bg-blue-600 text-white rounded" onClick={() => connect(p)}>Connect</button>
+              <button className="px-3 py-1 bg-rose-500 text-white rounded" onClick={() => connect(p)}>Connect</button>
             </div>
           </div>
         ))}
@@ -66,7 +66,7 @@ export default function ProfilePage({ photosCount, photos = [], onSavePhoto }) {
             </div>
             <div>
               {!premium ? (
-                <button className="px-3 py-1 bg-indigo-600 text-white rounded" onClick={unlock}>Upgrade</button>
+                <button className="px-3 py-1 bg-rose-500 text-white rounded" onClick={unlock}>Upgrade</button>
               ) : (
                 <div className="text-sm text-green-600 font-semibold">Premium unlocked</div>
               )}

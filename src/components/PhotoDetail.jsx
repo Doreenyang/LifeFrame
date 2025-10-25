@@ -79,7 +79,7 @@ export default function PhotoDetail({ photo, onClose, onSave }) {
 
             <div className="mt-3 flex gap-2">
               <input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Add a comment" className="flex-1 p-2 border rounded" />
-              <button onClick={addComment} className="px-3 py-2 bg-indigo-600 text-white rounded">Add</button>
+              <button onClick={addComment} className="px-3 py-2 bg-rose-500 text-white rounded">Add</button>
               <button onClick={recordToComment} className="px-3 py-2 bg-gray-100 rounded">🎤</button>
             </div>
 
@@ -97,6 +97,12 @@ export default function PhotoDetail({ photo, onClose, onSave }) {
 
             <div className="mt-4">
               <CoachPrompt photo={local} onSave={handleSaveUpdated} />
+              {local.aiSummary && (
+                <div className="mt-3 p-3 bg-rose-50 border border-rose-100 rounded">
+                  <div className="text-sm font-semibold">AI Insight</div>
+                  <div className="text-sm mt-1 text-gray-800">{local.aiSummary}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>

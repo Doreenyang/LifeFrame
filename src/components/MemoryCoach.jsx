@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { saveSession } from '../utils/storage'
+import { summarizeSession } from '../utils/ai'
 
 function speak(text) {
   try {
@@ -85,6 +86,9 @@ export default function MemoryCoach({ photos=[], onSavePhoto }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [running, index])
 
+  // derived AI summary for the current in-memory session
+  const aiSessionSummary = summarizeSession(session)
+
   return (
     <div className="mt-4 bg-white p-4 rounded-xl shadow-sm">
       <h3 className="text-lg font-semibold mb-2">Memory Coach (Premium)</h3>
@@ -92,17 +96,17 @@ export default function MemoryCoach({ photos=[], onSavePhoto }) {
         <div>
           <p className="text-sm text-gray-600">Guided, voice-enabled recall sessions to help strengthen memory. Sessions are short and friendly — great for seniors or patients practicing recall.</p>
           <div className="mt-3 flex gap-2">
-            <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={start} disabled={!order.length}>Start Session</button>
+            <button className="px-4 py-2 bg-rose-500 text-white rounded" onClick={start} disabled={!order.length}>Start Session</button>
             <button className="px-4 py-2 bg-gray-100 rounded" onClick={() => speak('Take a moment to breathe and relax. This session will help you recall details about your memories.')}>Play Intro</button>
           </div>
           {session.length > 0 && (
-            <div className="mt-3 text-sm">
-              <div className="font-semibold">Session answers</div>
-              <ul className="mt-2 space-y-1">
-                {session.map((s,i) => <li key={i} className="text-sm text-gray-700">• {s.answer}</li>)}
-              </ul>
-            </div>
-          )}
+                <div className="mt-3 text-sm">
+                  <div className="font-semibold">Session answers</div>
+                  <ul className="mt-2 space-y-1">
+                    {session.map((s,i) => <li key={i} className="text-sm text-gray-700">• {s.answer}</li>)}
+                  </ul>
+                </div>
+              )}
         </div>
       ) : (
         <div>
@@ -114,9 +118,15 @@ export default function MemoryCoach({ photos=[], onSavePhoto }) {
               <div className="text-sm text-gray-600 mt-2">Tell me one thing you remember about this moment.</div>
               <textarea value={answer} onChange={e=>setAnswer(e.target.value)} className="w-full mt-3 border rounded p-2" rows={3} />
               <div className="mt-3 flex gap-2">
-                <button className="px-4 py-2 bg-indigo-600 text-white rounded" onClick={submit}>Submit</button>
+                <button className="px-4 py-2 bg-rose-500 text-white rounded" onClick={submit}>Submit</button>
                 <button className="px-4 py-2 bg-gray-100 rounded" onClick={() => speak(`Please take your time. What do you remember about ${currentPhoto()?.title || 'this memory'}?`)}>Hear prompt</button>
               </div>
+              {aiSessionSummary && !running && (
+                <div className="mt-4 p-3 bg-rose-50 border border-rose-100 rounded">
+                  <div className="text-sm font-semibold">AI Session Insight</div>
+                  <div className="text-sm mt-1 text-gray-800">{aiSessionSummary}</div>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -3,11 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --bg: #f8fafc;
+  --bg: #fff7f3;
   --card: #ffffff;
-  --muted: #6b7280;
-  --accent: #4f46e5; /* indigo-600 */
-  --glass: rgba(255,255,255,0.6);
+  --muted: #6b4b3a;
+  --accent: #ff6b4a; /* warm coral */
+  --accent-2: #ffb86b; /* warm peach */
+  --glass: rgba(255,255,255,0.7);
 }
 
 /* Basic app styles */
@@ -21,10 +22,10 @@ body { @apply bg-gradient-to-b from-slate-50 to-white text-gray-900; font-family
 
 /* Emotion pill colors */
 .emotion-pill { @apply text-xs font-semibold text-white px-2 py-1 rounded-full inline-block }
-.emotion-joy { background: linear-gradient(90deg,#f97316,#f59e0b) } /* orange */
-.emotion-peace { background: linear-gradient(90deg,#34d399,#60a5fa) } /* green/blue */
-.emotion-nostalgia { background: linear-gradient(90deg,#c084fc,#fb7185) } /* purple/pink */
-.emotion-wonder { background: linear-gradient(90deg,#60a5fa,#a78bfa) }
+.emotion-joy { background: linear-gradient(90deg,#ff7a59,#ffb86b) } /* coral -> peach */
+.emotion-peace { background: linear-gradient(90deg,#f59e0b,#ffb86b) } /* warm amber */
+.emotion-nostalgia { background: linear-gradient(90deg,#fb7185,#ff9aa2) } /* rose -> soft pink */
+.emotion-wonder { background: linear-gradient(90deg,#ffb86b,#ffd6a5) } /* soft peach */
 
 /* Listening pulse animation */
 @keyframes pulse-soft {

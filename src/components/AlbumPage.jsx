@@ -20,7 +20,7 @@ export default function AlbumPage({ photos, query, onOpen }) {
               <div className="absolute left-2 top-2">
                 <span className={`emotion-pill ${p.emotion ? 'emotion-'+p.emotion : 'emotion-wonder'}`}>{p.emotion}</span>
               </div>
-              <div className="absolute left-0 right-0 bottom-0 p-3 title-overlay">
+                <div className="absolute left-0 right-0 bottom-0 p-3 title-overlay">
                 <div className="text-white font-semibold text-sm">{p.title || 'Memory'}</div>
                 <div className="text-xs text-white/80">{(p.comments||[]).length} comments</div>
               </div>
