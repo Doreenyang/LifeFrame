@@ -47,7 +47,7 @@ export default function ProfilePage({ photosCount, photos = [], onSavePhoto }) {
         <div className="mt-4 bg-white p-3 rounded shadow">
           <div className="text-sm">Syncing to {syncing.name}</div>
           <div className="w-full bg-gray-200 h-3 rounded mt-2">
-            <div style={{width: syncing.progress+'%'}} className="h-3 bg-green-500 rounded"></div>
+            <div style={{width: syncing.progress+'%'}} className="h-3 bg-amber-400 rounded"></div>
           </div>
           <div className="text-xs text-gray-600 mt-1">{syncing.progress}%</div>
         </div>
@@ -68,7 +68,7 @@ export default function ProfilePage({ photosCount, photos = [], onSavePhoto }) {
               {!premium ? (
                 <button className="px-3 py-1 bg-rose-500 text-white rounded" onClick={unlock}>Upgrade</button>
               ) : (
-                <div className="text-sm text-green-600 font-semibold">Premium unlocked</div>
+                <div className="text-sm text-amber-600 font-semibold">Premium unlocked</div>
               )}
             </div>
           </div>

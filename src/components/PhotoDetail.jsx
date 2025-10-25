@@ -87,9 +87,9 @@ export default function PhotoDetail({ photo, onClose, onSave }) {
               <h4 className="text-sm font-semibold">Reminders</h4>
               <div className="mt-2 flex gap-2">
                 <input placeholder="e.g. Remind me at 8 PM" className="flex-1 p-2 border rounded" onBlur={e=>e.target.value && setReminderFromText(e.target.value)} />
-                <button onClick={recordReminder} className="px-3 py-2 bg-green-600 text-white rounded">Set by Voice</button>
+                <button onClick={recordReminder} className="px-3 py-2 bg-amber-500 text-white rounded">Set by Voice</button>
               </div>
-              {reminderMsg && <div className="mt-2 text-sm text-green-700">{reminderMsg}</div>}
+              {reminderMsg && <div className="mt-2 text-sm text-amber-600">{reminderMsg}</div>}
               <ul className="mt-2 text-sm text-gray-700 space-y-1">
                 {(local.reminders || []).map((r,i) => <li key={i} className="border rounded p-2 bg-gray-50">{r.timeLabel || r.timeISO || r.time} — {r.note}</li>)}
               </ul>
