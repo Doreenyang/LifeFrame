@@ -78,11 +78,11 @@ export default function CoachPrompt({ photo, onSave }) {
         <input value={answer} onChange={e=>setAnswer(e.target.value)} placeholder="Type or use voice to answer" className="flex-1 p-2 border rounded" />
         <button onClick={startRecord} className="px-3 py-2 bg-gray-100 rounded">🎤</button>
         <button onClick={stopRecord} className="px-3 py-2 bg-gray-100 rounded">■</button>
-        <button onClick={saveAnswer} className="px-3 py-2 bg-rose-500 text-white rounded">Save</button>
+  <button onClick={saveAnswer} className="px-3 py-2 bg-rose-500 text-white rounded btn-press">Save</button>
       </div>
       {feedback && <div className="mt-3 text-sm text-gray-700">{feedback}</div>}
       {aiSummary && (
-        <div className="mt-3 p-3 bg-rose-50 border border-rose-100 rounded">
+        <div className="mt-3 p-3 bg-rose-50 border border-rose-100 rounded animate-fade-up">
           <div className="text-sm font-semibold">AI Insight</div>
           <div className="text-sm mt-1 text-gray-800">{aiSummary}</div>
         </div>

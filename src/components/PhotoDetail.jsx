@@ -79,17 +79,17 @@ export default function PhotoDetail({ photo, onClose, onSave }) {
 
             <div className="mt-3 flex gap-2">
               <input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Add a comment" className="flex-1 p-2 border rounded" />
-              <button onClick={addComment} className="px-3 py-2 bg-rose-500 text-white rounded">Add</button>
-              <button onClick={recordToComment} className="px-3 py-2 bg-gray-100 rounded">🎤</button>
+              <button onClick={addComment} className="px-3 py-2 bg-rose-500 text-white rounded btn-press">Add</button>
+              <button onClick={recordToComment} className="px-3 py-2 bg-gray-100 rounded btn-press">🎤</button>
             </div>
 
             <div className="mt-4">
               <h4 className="text-sm font-semibold">Reminders</h4>
               <div className="mt-2 flex gap-2">
                 <input placeholder="e.g. Remind me at 8 PM" className="flex-1 p-2 border rounded" onBlur={e=>e.target.value && setReminderFromText(e.target.value)} />
-                <button onClick={recordReminder} className="px-3 py-2 bg-amber-500 text-white rounded">Set by Voice</button>
+                <button onClick={recordReminder} className="px-3 py-2 bg-amber-500 text-white rounded btn-press">Set by Voice</button>
               </div>
-              {reminderMsg && <div className="mt-2 text-sm text-amber-600">{reminderMsg}</div>}
+              {reminderMsg && <div className="mt-2 text-sm text-amber-600 animate-toast">{reminderMsg}</div>}
               <ul className="mt-2 text-sm text-gray-700 space-y-1">
                 {(local.reminders || []).map((r,i) => <li key={i} className="border rounded p-2 bg-gray-50">{r.timeLabel || r.timeISO || r.time} — {r.note}</li>)}
               </ul>
@@ -98,7 +98,7 @@ export default function PhotoDetail({ photo, onClose, onSave }) {
             <div className="mt-4">
               <CoachPrompt photo={local} onSave={handleSaveUpdated} />
               {local.aiSummary && (
-                <div className="mt-3 p-3 bg-rose-50 border border-rose-100 rounded">
+                <div className="mt-3 p-3 bg-rose-50 border border-rose-100 rounded animate-fade-up">
                   <div className="text-sm font-semibold">AI Insight</div>
                   <div className="text-sm mt-1 text-gray-800">{local.aiSummary}</div>
                 </div>

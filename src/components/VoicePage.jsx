@@ -61,7 +61,7 @@ export default function VoicePage({ onQuery, query }) {
       <h2 className="text-xl font-semibold mb-4">Voice Search</h2>
 
       <div className="flex flex-col items-center gap-3">
-        <button onClick={toggleListen} className={`rounded-full p-5 bg-gradient-to-br from-rose-500 to-orange-300 text-white shadow-2xl ${listening ? 'listening scale-105' : 'hover:scale-105 transition-transform'}`}>
+  <button onClick={toggleListen} className={`rounded-full p-5 bg-gradient-to-br from-rose-500 to-orange-300 text-white shadow-2xl animate-pop btn-press ${listening ? 'listening scale-105' : 'hover:scale-105 transition-transform'}`}>
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">🎙️</div>
             <div className="text-sm font-semibold">{listening ? 'Listening' : 'Tap to speak'}</div>

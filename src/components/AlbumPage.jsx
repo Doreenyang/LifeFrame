@@ -14,7 +14,7 @@ export default function AlbumPage({ photos, query, onOpen }) {
 
       <div className="grid grid-cols-2 gap-3">
         {results.map(p => (
-          <div key={p.id} className="card cursor-pointer transform hover:scale-[1.02] transition-all" onClick={() => onOpen(p)}>
+          <div key={p.id} className="card cursor-pointer transform hover:scale-[1.02] transition-all duration-300 hover:shadow-lg" onClick={() => onOpen(p)}>
             <div className="relative">
               <img src={p.url} alt={p.comments?.join(', ')} className="card-img" />
               <div className="absolute left-2 top-2">

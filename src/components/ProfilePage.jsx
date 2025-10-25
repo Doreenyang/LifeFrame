@@ -59,14 +59,14 @@ export default function ProfilePage({ photosCount, photos = [], onSavePhoto }) {
 
       <div className="mt-6">
         <div className="bg-white p-3 rounded shadow-sm">
-          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
             <div>
               <div className="font-semibold">Memory Coach</div>
               <div className="text-sm text-gray-600">Guided recall sessions to help practice remembering moments.</div>
             </div>
             <div>
               {!premium ? (
-                <button className="px-3 py-1 bg-rose-500 text-white rounded" onClick={unlock}>Upgrade</button>
+                <button className="px-3 py-1 bg-rose-500 text-white rounded btn-press" onClick={unlock}>Upgrade</button>
               ) : (
                 <div className="text-sm text-amber-600 font-semibold">Premium unlocked</div>
               )}

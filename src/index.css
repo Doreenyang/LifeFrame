@@ -36,7 +36,7 @@ body { @apply bg-gradient-to-b from-slate-50 to-white text-gray-900; font-family
 .listening { animation: pulse-soft 1.4s infinite ease-in-out }
 
 /* simple waveform bars */
-.wave { display:inline-flex; gap:4px; align-items: end }
+.wave { display:inline-flex; gap:4px; align-items: flex-end }
 .wave > span { width:4px; background:rgba(255,255,255,0.9); display:inline-block; border-radius:2px; animation: wave 800ms linear infinite; }
 .wave > span:nth-child(2) { animation-delay: 120ms }
 .wave > span:nth-child(3) { animation-delay: 240ms }
@@ -45,4 +45,27 @@ body { @apply bg-gradient-to-b from-slate-50 to-white text-gray-900; font-family
 
 /* bottom nav backdrop */
 .nav-pill { @apply px-4 py-2 rounded-full bg-white/90 shadow-md }
+
+/* Image & card hover animations */
+.card { transition: transform 220ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms ease; transform-origin: center; }
+.card:hover { transform: translateY(-4px) scale(1.01) }
+.card-img { transition: transform 420ms cubic-bezier(.2,.9,.2,1) }
+.card:hover .card-img { transform: scale(1.06) }
+
+/* Generic animation utilities */
+@keyframes pop-in { 0%{ transform: scale(.96) translateY(6px); opacity: 0 } 60%{ transform: scale(1.02) translateY(-2px); opacity: 1 } 100%{ transform: scale(1) translateY(0); opacity: 1 } }
+@keyframes fade-up { 0%{ opacity: 0; transform: translateY(8px)} 100%{ opacity: 1; transform: translateY(0)} }
+@keyframes toast-slide { 0%{ opacity: 0; transform: translateY(12px)} 100%{ opacity: 1; transform: translateY(0)} }
+
+.animate-pop { animation: pop-in 360ms cubic-bezier(.2,.9,.2,1) both }
+.animate-fade-up { animation: fade-up 420ms ease both }
+.animate-toast { animation: toast-slide 420ms cubic-bezier(.2,.9,.2,1) both }
+
+/* button press micro-interaction */
+.btn-press:active { transform: translateY(1px) scale(.995) }
+
+/* subtle shimmer for loading states */
+.shimmer { position:relative; overflow:hidden }
+.shimmer::after { content:''; position:absolute; left:-120%; top:0; width:60%; height:100%; background:linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent); transform: skewX(-12deg); animation: shimmer 1.6s linear infinite }
+@keyframes shimmer { 0%{ left:-120% } 100%{ left:120% } }
 
