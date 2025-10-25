@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { loadReminders, saveReminder, deleteReminder } from '../utils/storage'
+import { searchPhotos } from '../data/search'
+import washuImg from '../assets/washu.png'
 
 const PROMPTS = [
   `Hey — do you remember this? This is your old friend from elementary school. You two were best friends but haven't talked for about five years. Maybe text her and say "Hello old friend". Do you have any memory about her?`,
@@ -22,10 +24,16 @@ function speak(text) {
 }
 
 const FALLBACK_PHOTOS = [
-  { id: 'sample-1', url: 'https://images.unsplash.com/photo-1503264116251-35a269479413?w=1200&q=80&auto=format&fit=crop', title: 'Old friends' },
-  { id: 'sample-2', url: 'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?w=1200&q=80&auto=format&fit=crop', title: 'School building' },
-  { id: 'sample-3', url: 'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=1200&q=80&auto=format&fit=crop', title: 'Family gathering' },
-  { id: 'sample-4', url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&q=80&auto=format&fit=crop', title: 'Childhood memory' }
+  { id: 'sample-1', url: 'https://images.unsplash.com/photo-1503264116251-35a269479413?w=1200&q=80&auto=format&fit=crop', title: 'Old friends', tags: ['friends','two','pair'], peopleCount: 2 },
+  { id: 'sample-2', url: 'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?w=1200&q=80&auto=format&fit=crop', title: 'School building', tags: ['school','building'], peopleCount: 0 },
+  { id: 'sample-3', url: 'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=1200&q=80&auto=format&fit=crop', title: 'Family gathering', tags: ['family','gathering'], peopleCount: 4 },
+  { id: 'sample-4', url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&q=80&auto=format&fit=crop', title: 'Childhood memory', tags: ['childhood','nostalgia'], peopleCount: 1 },
+  // extra samples: two-person candids and a campus image (WashU-style)
+  { id: 'sample-5', url: 'https://images.unsplash.com/photo-1524504388940-8f20f5f8a0c6?w=1200&q=80&auto=format&fit=crop', title: 'Two friends laughing', tags: ['friends','two','laughing'], peopleCount: 2 },
+  { id: 'sample-6', url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1200&q=80&auto=format&fit=crop', title: 'Outdoor pair', tags: ['couple','two','friends'], peopleCount: 2 },
+  { id: 'sample-7', url: 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1200&q=80&auto=format&fit=crop', title: 'University campus', tags: ['campus','university','washu'], peopleCount: 0 },
+  // local WashU asset provided in the repo (preferred for campus prompts)
+  { id: 'washu-local', url: washuImg, title: 'WashU campus', tags: ['washu','campus','washington university'], peopleCount: 0 }
 ]
 
 export default function RemindersPage({ photos = [] }) {
@@ -34,14 +42,103 @@ export default function RemindersPage({ photos = [] }) {
   const [attachedMap, setAttachedMap] = useState({})
   const availablePhotos = [...photos, ...FALLBACK_PHOTOS]
 
-  // prefill a default photo for each prompt so the image is shown on the card
+  // swipe state for Tinder-style single-card UI
+  const [translates, setTranslates] = useState({}) // idx -> x
+  const [draggingIdx, setDraggingIdx] = useState(null)
+  const dragRef = useRef({ startX: 0, pointerId: null })
+  const [currentIdx, setCurrentIdx] = useState(0)
+  const [showSaved, setShowSaved] = useState(true)
+
+  // pointer-based swipe handlers (mouse & touch)
+  function onPointerStart(e, idx) {
+    try { e.currentTarget?.setPointerCapture?.(e.pointerId) } catch (__) {}
+    // store start position for this pointer
+    dragRef.current = { startX: e.clientX, pointerId: e.pointerId }
+    setDraggingIdx(idx)
+  }
+
+  function onPointerMove(e, idx) {
+    if (draggingIdx !== idx) return
+    const dx = e.clientX - dragRef.current.startX
+    setTranslates(prev => ({ ...prev, [idx]: dx }))
+  }
+
+  function onPointerEnd(e, prompt, idx) {
+    try { e.currentTarget?.releasePointerCapture?.(e.pointerId) } catch (__) {}
+    const dx = translates[idx] || 0
+    const threshold = 120
+    setDraggingIdx(null)
+    if (dx > threshold) {
+      // swipe right -> save and advance
+      setTranslates(prev => ({ ...prev, [idx]: window.innerWidth }))
+      setTimeout(() => {
+        handleSave(prompt, idx)
+        setCurrentIdx(ci => ci + 1)
+        setTranslates(prev => ({ ...prev, [idx]: 0 }))
+      }, 220)
+      return
+    }
+    if (dx < -threshold) {
+      // swipe left -> dismiss and advance
+      setTranslates(prev => ({ ...prev, [idx]: -window.innerWidth }))
+      setTimeout(() => {
+        setCurrentIdx(ci => ci + 1)
+        setTranslates(prev => ({ ...prev, [idx]: 0 }))
+      }, 220)
+      return
+    }
+    // snap back
+    setTranslates(prev => ({ ...prev, [idx]: 0 }))
+  }
+
+  // keyboard support: left = dismiss, right = save
+  function handleKeyDown(e) {
+    if (currentIdx >= PROMPTS.length) return
+    if (e.key === 'ArrowRight') {
+      const i = currentIdx
+      handleSave(PROMPTS[i], i)
+      setCurrentIdx(ci => ci + 1)
+    } else if (e.key === 'ArrowLeft') {
+      setCurrentIdx(ci => ci + 1)
+    }
+  }
+
+  // choose the most relevant photo for each prompt by searching available photos
   useEffect(() => {
     if (!availablePhotos || !availablePhotos.length) return
     const defaults = {}
-    PROMPTS.forEach((_, i) => {
+  PROMPTS.forEach((p, i) => {
+      try {
+        const matches = searchPhotos(p, availablePhotos)
+        if (matches && matches.length) {
+          // prefer a match that explicitly looks like "friends" or has peopleCount === 2 when prompt mentions friend
+          const text = p.toLowerCase()
+          const wantsFriend = text.includes('friend') || text.includes('friends')
+          const wantsCampus = text.includes('school') || text.includes('campus') || text.includes('university') || text.includes("mother")
+          // if campus-related prompt, prefer any photo tagged 'washu' or with 'wash' in the title
+          if (wantsCampus) {
+            const wash = matches.find(m => ((m.tags||[]).some(t => /washu|washington/i.test(t)) ) || (m.title||'').toLowerCase().includes('wash'))
+            if (wash) { defaults[i] = wash.id; return }
+          }
+          if (wantsFriend) {
+            const friendMatch = matches.find(m => (m.tags||[]).some(t => /friend|friends|pair|couple|two|2/.test(t)) || (m.peopleCount && m.peopleCount === 2) || (m.title||'').toLowerCase().includes('friend'))
+            if (friendMatch) { defaults[i] = friendMatch.id; return }
+          }
+          // otherwise use the first match
+          defaults[i] = matches[0].id
+          return
+        }
+      } catch (e) {
+        // fallback below
+      }
       const pick = availablePhotos[i % availablePhotos.length]
       if (pick) defaults[i] = pick.id
     })
+    // ensure the second prompt (index 1 — the "mother's school" campus prompt) uses the bundled WashU image when available
+    try {
+      const localWashu = availablePhotos.find(p => p.id === 'washu-local')
+      if (localWashu) defaults[1] = localWashu.id
+    } catch (e) { /* ignore */ }
     setAttachedMap(defaults)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photos])
@@ -73,19 +170,78 @@ export default function RemindersPage({ photos = [] }) {
       <p className="text-sm text-gray-600 mb-4">Use these friendly prompts to jog memories — play them aloud or save a reminder to reflect later.</p>
 
       <div className="space-y-3">
-        {PROMPTS.map((p, i) => (
-          <div key={i} className="bg-white p-3 rounded-xl shadow-sm animate-pop">
-            {/* show photo on top of the prompt so user sees a visual first */}
-            {availablePhotos[i % availablePhotos.length] && (
-              <img src={availablePhotos[i % availablePhotos.length].url} alt={availablePhotos[i % availablePhotos.length].title} className="w-full h-40 object-cover rounded-md mb-3" />
-            )}
-            <div className="text-sm text-gray-800 mb-2">{p}</div>
-            <div className="flex gap-2 items-center">
-              <button className="px-3 py-2 bg-rose-500 text-white rounded btn-press" onClick={()=>speak(p)}>Play</button>
-              <button className="px-3 py-2 bg-amber-400 text-white rounded btn-press" onClick={()=>{ setBusyIdx(i); handleSave(p, i) }}>{busyIdx===i ? 'Saved' : 'Save reminder'}</button>
+        {/* Tinder-style single card view */}
+  <div className="relative h-80 flex items-center justify-center overflow-hidden">
+          {currentIdx >= PROMPTS.length ? (
+            <div className="bg-white p-6 rounded-xl shadow-sm flex flex-col items-center justify-center w-full max-w-md">
+              <div className="text-lg font-medium mb-2">No more prompts</div>
+              <div className="text-sm text-gray-500 mb-4">You've reached the end of today's prompts.</div>
+              <button className="px-4 py-2 bg-amber-400 text-white rounded btn-press" onClick={()=>setCurrentIdx(0)}>Restart</button>
             </div>
-          </div>
-        ))}
+          ) : (
+            (() => {
+              const i = currentIdx
+              const p = PROMPTS[i]
+              const sel = attachedMap[i] ? availablePhotos.find(x => x.id === attachedMap[i]) : null
+              const selectedPhoto = sel || availablePhotos[i % availablePhotos.length]
+              const x = translates[i] || 0
+              const isDragging = draggingIdx === i
+              const rotate = x / 20
+              const opacity = 1 - Math.min(0.7, Math.abs(x) / 600)
+              const nextIdx = i + 1
+              const nextSel = attachedMap[nextIdx] ? availablePhotos.find(x => x.id === attachedMap[nextIdx]) : null
+              const nextPhoto = nextSel || availablePhotos[nextIdx % availablePhotos.length]
+              const reveal = Math.min(1, Math.abs(x) / 200)
+              return (
+                <div className="w-full max-w-md relative">
+                  {/* next card peek */}
+                  {nextIdx < PROMPTS.length && (
+                    <div className="absolute top-3 left-0 right-0 mx-auto w-full max-w-md transform scale-95 opacity-90" style={{ zIndex: 1 }}>
+                      <div className="bg-white p-3 rounded-xl shadow-sm h-full flex flex-col justify-between opacity-80">
+                        {nextPhoto && <img src={nextPhoto.url} alt={nextPhoto.title} className="w-full h-36 object-cover rounded-md mb-3" />}
+                        <div className="text-sm text-gray-500">{PROMPTS[nextIdx]}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* action overlays (left = dismiss, right = save) */}
+                  <div style={{ pointerEvents: 'none' }}>
+                    <div className="absolute inset-0 rounded-xl" style={{ background: x > 0 ? 'linear-gradient(90deg,#34d39922,#10b98133)' : 'transparent', opacity: x > 0 ? reveal : 0, zIndex: 2 }} />
+                    <div className="absolute inset-0 rounded-xl" style={{ background: x < 0 ? 'linear-gradient(270deg,#fca5a522,#ef444433)' : 'transparent', opacity: x < 0 ? reveal : 0, zIndex: 2 }} />
+                    {/* icons */}
+                    <div className="absolute left-4 top-4 text-white text-2xl" style={{ opacity: x > 0 ? reveal : 0, zIndex: 3 }}>✅</div>
+                    <div className="absolute right-4 top-4 text-white text-2xl" style={{ opacity: x < 0 ? reveal : 0, zIndex: 3 }}>✖️</div>
+                  </div>
+
+                  {/* current card */}
+                  <div
+                    key={i}
+                    className="bg-white p-3 rounded-xl shadow-lg mx-auto w-full h-full flex flex-col justify-between relative"
+                    onPointerDown={(e) => onPointerStart(e, i)}
+                    onPointerMove={(e) => onPointerMove(e, i)}
+                    onPointerUp={(e) => onPointerEnd(e, p, i)}
+                    onPointerCancel={(e) => onPointerEnd(e, p, i)}
+                    onKeyDown={handleKeyDown}
+                    tabIndex={0}
+                    style={{ transform: `translateX(${x}px) rotate(${rotate}deg)`, transition: isDragging ? 'none' : 'transform 220ms ease', opacity, zIndex: 4, touchAction: 'none' }}
+                  >
+                    {selectedPhoto && (
+                      <img src={selectedPhoto.url} alt={selectedPhoto.title} crossOrigin="anonymous" onError={(e) => { console.warn('Image failed to load, falling back', e?.target?.src); e.target.onerror = null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-full h-40 object-cover rounded-md mb-3" />
+                    )}
+                    <div className="text-sm text-gray-800 mb-2 flex-1">{p}</div>
+                    <div className="flex gap-2 items-center">
+                      <button className="px-3 py-2 bg-rose-500 text-white rounded btn-press" onClick={()=>speak(p)}>Play</button>
+                      <button className="px-3 py-2 bg-amber-400 text-white rounded btn-press" onClick={()=>{ setBusyIdx(i); handleSave(p, i); setCurrentIdx(ci=>ci+1) }}>{busyIdx===i ? 'Saved' : 'Save & next'}</button>
+                      <button className="px-3 py-2 bg-gray-100 rounded btn-press" onClick={()=>setCurrentIdx(ci=>ci+1)}>Skip</button>
+                    </div>
+                    <div className="mt-2 text-xs text-gray-400">Tip: swipe right to save, swipe left to dismiss • Use ← → keys</div>
+                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">{i+1} / {PROMPTS.length}</div>
+                  </div>
+                </div>
+              )
+            })()
+          )}
+        </div>
       </div>
 
       <div className="mt-6">
@@ -98,7 +254,7 @@ export default function RemindersPage({ photos = [] }) {
               <li key={idx} className="bg-white p-3 rounded shadow-sm flex justify-between items-start animate-fade-up">
                 <div className="flex gap-3">
                   {r.photo && (
-                    <img src={r.photo.url} alt={r.photo.title} className="w-20 h-14 object-cover rounded" />
+                    <img src={r.photo.url} alt={r.photo.title} crossOrigin="anonymous" onError={(e)=>{ console.warn('Saved reminder image failed to load', e?.target?.src); e.target.onerror=null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-20 h-14 object-cover rounded" />
                   )}
                   <div>
                     <div className="text-sm text-gray-800">{r.text}</div>
