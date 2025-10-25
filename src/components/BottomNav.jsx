@@ -14,6 +14,11 @@ export default function BottomNav({ page, setPage }) {
             <MicIcon /> <span className="hidden sm:inline">Voice</span>
           </button>
 
+          <button onClick={() => setPage('reminders')} className={`flex items-center gap-2 ${page==='reminders' ? 'text-amber-600 font-semibold' : 'text-gray-600'}`}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22s4-1 4-4H8c0 3 4 4 4 4z" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M18 8a6 6 0 1 0-12 0v4l-2 2v1h16v-1l-2-2V8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            <span className="hidden sm:inline">Reminders</span>
+          </button>
+
           <button onClick={() => setPage('coach')} className={`flex items-center gap-2 px-3 py-2 rounded-full ${page==='coach' ? 'bg-rose-500 text-white shadow-lg' : 'bg-white text-gray-700'}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v6" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M5 12h14" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/><path d="M12 22v-8" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/></svg>
             <span className="hidden sm:inline">Coach</span>

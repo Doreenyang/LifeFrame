@@ -4,6 +4,7 @@ import BottomNav from './components/BottomNav'
 import AlbumPage from './components/AlbumPage'
 import VoicePage from './components/VoicePage'
 import ProfilePage from './components/ProfilePage'
+import RemindersPage from './components/RemindersPage'
 import PhotoDetail from './components/PhotoDetail'
 import CoachPage from './pages/CoachPage'
 
@@ -62,6 +63,8 @@ export default function App() {
           <AlbumPage photos={photos} query={query} onOpen={openPhoto} />
         ) : page === 'voice' ? (
           <VoicePage onQuery={q => setQuery(q)} query={query} />
+        ) : page === 'reminders' ? (
+          <RemindersPage photos={photos} />
         ) : page === 'coach' ? (
           <CoachPage photos={photos} onSavePhoto={updatePhoto} />
         ) : (

@@ -3,6 +3,7 @@ const QUERY_KEY = 'remindme_query_v1'
 const PREMIUM_KEY = 'remindme_premium_v1'
 const SHARED_KEY = 'remindme_shared_v1'
 const SESSIONS_KEY = 'remindme_sessions_v1'
+const REMINDERS_KEY = 'remindme_reminders_v1'
 
 export function loadPhotos() {
   try {
@@ -93,6 +94,31 @@ export function saveSession(session) {
 
 export function clearSessions() {
   try { localStorage.removeItem(SESSIONS_KEY) } catch(e){}
+}
+
+export function loadReminders() {
+  try {
+    const raw = localStorage.getItem(REMINDERS_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch (e) {
+    return []
+  }
+}
+
+export function saveReminder(reminder) {
+  try {
+    const all = loadReminders()
+    all.unshift(reminder)
+    localStorage.setItem(REMINDERS_KEY, JSON.stringify(all))
+  } catch (e) { console.error('Failed to save reminder', e) }
+}
+
+export function deleteReminder(idx) {
+  try {
+    const all = loadReminders()
+    all.splice(idx, 1)
+    localStorage.setItem(REMINDERS_KEY, JSON.stringify(all))
+  } catch (e) { console.error('Failed to delete reminder', e) }
 }
 
 export function exportData() {
