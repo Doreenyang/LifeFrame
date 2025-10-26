@@ -230,19 +230,19 @@ export default function MemoryCoach({ photos=[], onSavePhoto, openAlbum }) {
   const aiSessionSummary = summarizeSession(responses)
 
   return (
-    <div className="mt-4 bg-white p-4 rounded-xl shadow-sm">
+    <div className="mt-4 bg-white p-4 sm:p-5 rounded-xl shadow-sm">
       <h3 className="text-lg font-semibold mb-2">Memory Coach (Premium)</h3>
       {!running ? (
         <div>
           <p className="text-sm text-gray-600">Guided, voice-enabled recall sessions to help strengthen memory. Sessions are short and friendly — great for seniors or patients practicing recall.</p>
-          <div className="mt-3 flex gap-2">
-            <button className="px-4 py-2 bg-rose-500 text-white rounded btn-press animate-pop" onClick={start} disabled={!order.length}>Start Session</button>
-            <button className="px-4 py-2 bg-gray-100 rounded btn-press" onClick={() => speak('Take a moment to breathe and relax. This session will help you recall details about your memories.')}>Play Intro</button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button className="w-full sm:w-auto px-4 py-2 bg-rose-500 text-white rounded btn-press animate-pop" onClick={start} disabled={!order.length}>Start Session</button>
+            <button className="w-full sm:w-auto px-4 py-2 bg-gray-100 rounded btn-press" onClick={() => speak('Take a moment to breathe and relax. This session will help you recall details about your memories.')}>Play Intro</button>
           </div>
           {responses.length > 0 && (
                 <div className="mt-3 text-sm">
                   <div className="font-semibold">Session answers</div>
-                  <ul className="mt-2 space-y-1">
+                  <ul className="mt-2 space-y-1 max-h-40 overflow-auto">
                     {responses.map((s,i) => <li key={i} className="text-sm text-gray-700">• {s.question}: {s.answer}</li>)}
                   </ul>
                 </div>
@@ -252,23 +252,23 @@ export default function MemoryCoach({ photos=[], onSavePhoto, openAlbum }) {
         <div>
           <div className="text-sm text-gray-600 mb-2">Memory {photoIndex+1} of {order.length} • Question {questionIndex+1} of {QUESTIONS.length}</div>
           <div className="card overflow-hidden">
-            <img src={currentPhoto()?.url} alt="coach" className="card-img" />
-            <div className="p-3">
+            <img src={currentPhoto()?.url} alt="coach" className="w-full h-44 sm:h-56 md:h-64 lg:h-72 object-cover" />
+            <div className="p-3 sm:p-4">
               <div className="text-base font-semibold">{currentPhoto()?.title || 'Memory'}</div>
               <div className="text-sm text-gray-600 mt-2">{QUESTIONS[questionIndex]}</div>
               <div className="mt-3">
                 <div className="text-sm text-gray-700">{answer ? 'Voice answer captured — press Submit when ready.' : 'No voice answer yet. Use "Answer by voice" to record.'}</div>
               </div>
-              <div className="mt-3 flex gap-2">
-                <button className="px-4 py-2 bg-rose-500 text-white rounded btn-press" onClick={submit} disabled={!answer}>Submit</button>
-                <button className="px-4 py-2 bg-gray-100 rounded" onClick={skip}>Skip</button>
-                <button className="px-4 py-2 bg-gray-100 rounded" onClick={simulateVoice}>Simulate voice</button>
-                <button className="px-4 py-2 bg-gray-100 rounded" onClick={viewDetails}>Details</button>
-                <button className="px-4 py-2 bg-gray-100 rounded" onClick={() => speak(QUESTIONS[questionIndex])}>Hear prompt</button>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button className="w-full sm:w-auto px-4 py-2 bg-rose-500 text-white rounded btn-press" onClick={submit} disabled={!answer}>Submit</button>
+                <button className="w-full sm:w-auto px-4 py-2 bg-gray-100 rounded" onClick={skip}>Skip</button>
+                <button className="w-full sm:w-auto px-4 py-2 bg-gray-100 rounded" onClick={simulateVoice}>Simulate voice</button>
+                <button className="w-full sm:w-auto px-4 py-2 bg-gray-100 rounded" onClick={viewDetails}>Details</button>
+                <button className="w-full sm:w-auto px-4 py-2 bg-gray-100 rounded" onClick={() => speak(QUESTIONS[questionIndex])}>Hear prompt</button>
               </div>
               <div className="mt-3 flex flex-col gap-2">
                 <div className="flex gap-2 items-center">
-                  <button className="px-3 py-2 bg-rose-200 text-rose-800 rounded btn-press" onClick={()=> listening ? stopListening() : startListening()}>{listening ? 'Stop listening' : 'Answer by voice'}</button>
+                  <button className="flex-1 sm:flex-none px-3 py-2 bg-rose-200 text-rose-800 rounded btn-press" onClick={()=> listening ? stopListening() : startListening()}>{listening ? 'Stop listening' : 'Answer by voice'}</button>
                   <button className="px-3 py-2 bg-amber-100 text-amber-800 rounded btn-press" onClick={requestHint}>Hint</button>
                   <div className="text-sm text-gray-500">{maskedTitle(currentPhoto()?.title)}</div>
                 </div>
