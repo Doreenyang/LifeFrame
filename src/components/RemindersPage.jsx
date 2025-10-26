@@ -205,6 +205,10 @@ export default function RemindersPage({ photos = [], openAlbum }) {
 
       <p className="text-sm text-gray-600 mb-4">Use these friendly prompts to jog memories — play them aloud or save a reminder to reflect later.</p>
 
+      <div className="mb-4 text-sm text-gray-500 bg-gray-50 p-2 rounded-md border">
+        Tip: Swipe right to save a prompt, swipe left to skip it. You can also use the ← and → arrow keys to skip or save.
+      </div>
+
       <div className="space-y-3">
         {/* Tinder-style single card view */}
   <div className="relative h-80 flex items-center justify-center overflow-hidden">
@@ -274,7 +278,7 @@ export default function RemindersPage({ photos = [], openAlbum }) {
                       <button className="px-3 py-2 bg-amber-400 text-white rounded btn-press" onClick={()=>{ setBusyIdx(i); handleSave(p, i); setCurrentIdx(ci=>ci+1) }}>{busyIdx===i ? 'Saved' : 'Save & next'}</button>
                       <button className="px-3 py-2 bg-gray-100 rounded btn-press" onClick={()=>setCurrentIdx(ci=>ci+1)}>Skip</button>
                     </div>
-                    <div className="mt-2 text-xs text-gray-400">Tip: swipe right to save, swipe left to dismiss • Use ← → keys</div>
+                    <div className="mt-2 text-xs text-gray-400">Tip: swipe right to save, swipe left to skip • Use ← → keys</div>
                   </div>
                   {/* page indicator placed below card to avoid overlap with content */}
                   <div className="text-center text-xs text-gray-500 mt-2">{i+1} / {PROMPTS.length}</div>
