@@ -64,45 +64,53 @@ export default function PhotoDetail({ photo, onClose, onSave }) {
   }
 
   return (
-    <div className="max-w-3xl mx-auto py-6">
-      <button className="text-sm text-blue-600 mb-3" onClick={onClose}>Back</button>
+    <div className="w-full max-w-4xl mx-auto py-6 px-4">
+      <button className="text-sm text-blue-600 mb-3 block" onClick={onClose}>Back</button>
 
       <div className="card p-3">
-        <img src={local.url} alt="detail" className="w-full h-64 object-cover rounded" />
-        <div className="mt-3">
-          <div className="text-sm text-gray-700">Emotion: <span className={`emotion-pill ${local.emotion ? 'emotion-'+local.emotion : 'emotion-wonder'}`}>{local.emotion}</span></div>
-          <div className="mt-2">
-            <h3 className="text-sm font-semibold">Comments</h3>
-            <ul className="mt-2 text-sm text-gray-700 space-y-1">
-              {(local.comments || []).map((c, i) => <li key={i} className="border rounded p-2 bg-gray-50">{c}</li>)}
-            </ul>
+        {/* layout: stack on small screens, two-column on md+ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          <div className="w-full">
+            <img src={local.url} alt="detail" className="w-full h-64 sm:h-72 md:h-auto md:max-h-[70vh] object-cover rounded" />
+          </div>
 
-            <div className="mt-3 flex gap-2">
-              <input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Add a comment" className="flex-1 p-2 border rounded" />
-              <button onClick={addComment} className="px-3 py-2 bg-rose-500 text-white rounded btn-press">Add</button>
-              <button onClick={recordToComment} className="px-3 py-2 bg-gray-100 rounded btn-press">🎤</button>
-            </div>
-
-            <div className="mt-4">
-              <h4 className="text-sm font-semibold">Reminders</h4>
-              <div className="mt-2 flex gap-2">
-                <input placeholder="e.g. Remind me at 8 PM" className="flex-1 p-2 border rounded" onBlur={e=>e.target.value && setReminderFromText(e.target.value)} />
-                <button onClick={recordReminder} className="px-3 py-2 bg-amber-500 text-white rounded btn-press">Set by Voice</button>
-              </div>
-              {reminderMsg && <div className="mt-2 text-sm text-amber-600 animate-toast">{reminderMsg}</div>}
-              <ul className="mt-2 text-sm text-gray-700 space-y-1">
-                {(local.reminders || []).map((r,i) => <li key={i} className="border rounded p-2 bg-gray-50">{r.timeLabel || r.timeISO || r.time} — {r.note}</li>)}
+          <div className="mt-0">
+            <div className="text-sm text-gray-700">Emotion: <span className={`emotion-pill ${local.emotion ? 'emotion-'+local.emotion : 'emotion-wonder'}`}>{local.emotion}</span></div>
+            <div className="mt-3">
+              <h3 className="text-sm font-semibold">Comments</h3>
+              <ul className="mt-2 text-sm text-gray-700 space-y-1 max-h-48 overflow-auto">
+                {(local.comments || []).map((c, i) => <li key={i} className="border rounded p-2 bg-gray-50">{c}</li>)}
               </ul>
-            </div>
 
-            <div className="mt-4">
-              <CoachPrompt photo={local} onSave={handleSaveUpdated} />
-              {local.aiSummary && (
-                <div className="mt-3 p-3 bg-rose-50 border border-rose-100 rounded animate-fade-up">
-                  <div className="text-sm font-semibold">AI Insight</div>
-                  <div className="text-sm mt-1 text-gray-800">{local.aiSummary}</div>
+              <div className="mt-3 flex flex-col md:flex-row gap-2">
+                <input value={comment} onChange={e=>setComment(e.target.value)} placeholder="Add a comment" className="flex-1 p-2 border rounded" />
+                <div className="flex gap-2">
+                  <button onClick={addComment} className="px-3 py-2 bg-rose-500 text-white rounded btn-press">Add</button>
+                  <button onClick={recordToComment} className="px-3 py-2 bg-gray-100 rounded btn-press">🎤</button>
                 </div>
-              )}
+              </div>
+
+              <div className="mt-4">
+                <h4 className="text-sm font-semibold">Reminders</h4>
+                <div className="mt-2 flex flex-col md:flex-row gap-2">
+                  <input placeholder="e.g. Remind me at 8 PM" className="flex-1 p-2 border rounded" onBlur={e=>e.target.value && setReminderFromText(e.target.value)} />
+                  <button onClick={recordReminder} className="px-3 py-2 bg-amber-500 text-white rounded btn-press">Set by Voice</button>
+                </div>
+                {reminderMsg && <div className="mt-2 text-sm text-amber-600 animate-toast">{reminderMsg}</div>}
+                <ul className="mt-2 text-sm text-gray-700 space-y-1 max-h-36 overflow-auto">
+                  {(local.reminders || []).map((r,i) => <li key={i} className="border rounded p-2 bg-gray-50">{r.timeLabel || r.timeISO || r.time} — {r.note}</li>)}
+                </ul>
+              </div>
+
+              <div className="mt-4">
+                <CoachPrompt photo={local} onSave={handleSaveUpdated} />
+                {local.aiSummary && (
+                  <div className="mt-3 p-3 bg-rose-50 border border-rose-100 rounded animate-fade-up">
+                    <div className="text-sm font-semibold">AI Insight</div>
+                    <div className="text-sm mt-1 text-gray-800">{local.aiSummary}</div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
