@@ -46,7 +46,7 @@ function speak(text) {
   }
 }
 
-export default function MemoryCoach({ photos=[], onSavePhoto }) {
+export default function MemoryCoach({ photos=[], onSavePhoto, openAlbum }) {
   const [running, setRunning] = useState(false)
   const [photoIndex, setPhotoIndex] = useState(0)
   const [questionIndex, setQuestionIndex] = useState(0)
@@ -193,6 +193,24 @@ export default function MemoryCoach({ photos=[], onSavePhoto }) {
     speak('Session complete.')
   }
 
+  function viewDetails() {
+    const p = currentPhoto()
+    if (!p) return
+    if (typeof openAlbum === 'function') {
+      try { openAlbum([p], p.title || 'Related photos') } catch(e) { console.warn(e) }
+      return
+    }
+    try { window.open(p.url, '_blank') } catch(e) { console.warn('open failed', e) }
+  }
+
+  function simulateVoice() {
+    const p = currentPhoto()
+    if (!p) return
+    const mock = '(simulated voice answer)'
+    setAnswer(mock)
+    speak('Simulated voice captured. Press Submit to continue or Skip to move on without saving.')
+  }
+
   useEffect(() => {
     if (running) {
       // small delay then ask about first image/question
@@ -244,6 +262,8 @@ export default function MemoryCoach({ photos=[], onSavePhoto }) {
               <div className="mt-3 flex gap-2">
                 <button className="px-4 py-2 bg-rose-500 text-white rounded btn-press" onClick={submit} disabled={!answer}>Submit</button>
                 <button className="px-4 py-2 bg-gray-100 rounded" onClick={skip}>Skip</button>
+                <button className="px-4 py-2 bg-gray-100 rounded" onClick={simulateVoice}>Simulate voice</button>
+                <button className="px-4 py-2 bg-gray-100 rounded" onClick={viewDetails}>Details</button>
                 <button className="px-4 py-2 bg-gray-100 rounded" onClick={() => speak(QUESTIONS[questionIndex])}>Hear prompt</button>
               </div>
               <div className="mt-3 flex flex-col gap-2">

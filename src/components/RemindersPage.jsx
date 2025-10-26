@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react'
 import { loadReminders, saveReminder, deleteReminder } from '../utils/storage'
 import { searchPhotos } from '../data/search'
 import washuImg from '../assets/washu.png'
+import winImg from '../assets/win.jpg'
 
 const PROMPTS = [
-  `Hey — do you remember this? This is your old friend from elementary school. You two were best friends but haven't talked for about five years. Maybe text her and say "Hello old friend". Do you have any memory about her?`,
-  `Do you remember this place — your mother's school? Do you still recall what it looked like? Any idea you want to share? Maybe it's time to go back and see it. It's been a long time.`,
+  `Do you remember 10 years ago when you won the math competition? You were the winner — be proud of yourself. That took courage, hard work, and determination. What do you remember from that day?`,
+  `Do you remember this place — your undergraduate school? Do you still recall what it looked like? Any idea you want to share? Maybe it's time to go back and see it. It's been a long time.`,
   `This photo might bring back a familiar smell or a song. Can you recall a sound or smell that makes this moment vivid?`,
   `Think about a small detail here — a color, a gesture, or a phrase someone said. What comes to mind first?`,
   `Who would you like to tell this story to? Imagine telling them now — what do you say?`
@@ -70,7 +71,7 @@ function speakWithFeedback(text, onStart, onEnd) {
 }
 
 const FALLBACK_PHOTOS = [
-  { id: 'sample-1', url: 'https://images.unsplash.com/photo-1503264116251-35a269479413?w=1200&q=80&auto=format&fit=crop', title: 'Old friends', tags: ['friends','two','pair'], peopleCount: 2 },
+  { id: 'sample-1', url: winImg, title: 'Competition Winner', tags: ['winner','competition','achievement'], peopleCount: 1 },
   { id: 'sample-2', url: 'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?w=1200&q=80&auto=format&fit=crop', title: 'School building', tags: ['school','building'], peopleCount: 0 },
   { id: 'sample-3', url: 'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?w=1200&q=80&auto=format&fit=crop', title: 'Family gathering', tags: ['family','gathering'], peopleCount: 4 },
   { id: 'sample-4', url: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&q=80&auto=format&fit=crop', title: 'Childhood memory', tags: ['childhood','nostalgia'], peopleCount: 1 },
@@ -224,6 +225,11 @@ export default function RemindersPage({ photos = [], openAlbum }) {
       const localWashu = availablePhotos.find(p => p.id === 'washu-local')
       if (localWashu) defaults[1] = localWashu.id
     } catch (e) { /* ignore */ }
+    // force the first prompt to use the bundled win image fallback so it's always the celebratory photo
+    try {
+      const winLocal = availablePhotos.find(p => p.id === 'sample-1')
+      if (winLocal) defaults[0] = winLocal.id
+    } catch (e) { /* ignore */ }
     setAttachedMap(defaults)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photos])
@@ -283,7 +289,7 @@ export default function RemindersPage({ photos = [], openAlbum }) {
                   {nextIdx < PROMPTS.length && (
                     <div className="absolute top-3 left-0 right-0 mx-auto w-full max-w-md transform scale-95 opacity-90" style={{ zIndex: 1 }}>
                       <div className="bg-white p-3 rounded-xl shadow-sm h-full flex flex-col justify-between opacity-80">
-                        {nextPhoto && <img src={nextPhoto.url} alt={nextPhoto.title} className="w-full h-36 object-cover rounded-md mb-3" />}
+                        {nextPhoto && <img src={nextPhoto.url} alt={nextPhoto.title} className="w-full h-56 object-contain rounded-md mb-3 bg-gray-50" />}
                         <div className="text-sm text-gray-500">{PROMPTS[nextIdx]}</div>
                       </div>
                     </div>
@@ -311,7 +317,7 @@ export default function RemindersPage({ photos = [], openAlbum }) {
                     style={{ transform: `translateX(${x}px) rotate(${rotate}deg)`, transition: isDragging ? 'none' : 'transform 220ms ease', opacity, zIndex: 4, touchAction: 'none' }}
                   >
                     {selectedPhoto && (
-                      <img onClick={() => openGallery(selectedPhoto)} src={selectedPhoto.url} alt={selectedPhoto.title} crossOrigin="anonymous" onError={(e) => { console.warn('Image failed to load, falling back', e?.target?.src); e.target.onerror = null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-full h-40 object-cover rounded-md mb-3 cursor-pointer" />
+                      <img onClick={() => openGallery(selectedPhoto)} src={selectedPhoto.url} alt={selectedPhoto.title} crossOrigin="anonymous" onError={(e) => { console.warn('Image failed to load, falling back', e?.target?.src); e.target.onerror = null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-full h-56 object-contain rounded-md mb-3 cursor-pointer bg-gray-50" />
                     )}
                     <div className="text-sm text-gray-800 mb-2 flex-1">{p}</div>
                     <div className="flex gap-2 items-center">
@@ -348,7 +354,7 @@ export default function RemindersPage({ photos = [], openAlbum }) {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {galleryPhotos.map((g) => (
                   <div key={g.id} className="rounded overflow-hidden bg-gray-50">
-                    <img src={g.url} alt={g.title} className="w-full h-36 object-cover" crossOrigin="anonymous" onError={(e)=>{ e.target.onerror=null; e.target.src = FALLBACK_PHOTOS[0].url }} />
+                    <img src={g.url} alt={g.title} className="w-full h-48 object-contain bg-gray-50" crossOrigin="anonymous" onError={(e)=>{ e.target.onerror=null; e.target.src = FALLBACK_PHOTOS[0].url }} />
                     <div className="p-2 text-xs text-gray-600">{g.title}</div>
                   </div>
                 ))}
@@ -368,7 +374,7 @@ export default function RemindersPage({ photos = [], openAlbum }) {
               <li key={idx} className="bg-white p-3 rounded shadow-sm flex justify-between items-start animate-fade-up">
                 <div className="flex gap-3">
                   {r.photo && (
-                    <img onClick={() => openGallery(r.photo)} src={r.photo.url} alt={r.photo.title} crossOrigin="anonymous" onError={(e)=>{ console.warn('Saved reminder image failed to load', e?.target?.src); e.target.onerror=null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-20 h-14 object-cover rounded cursor-pointer" />
+                    <img onClick={() => openGallery(r.photo)} src={r.photo.url} alt={r.photo.title} crossOrigin="anonymous" onError={(e)=>{ console.warn('Saved reminder image failed to load', e?.target?.src); e.target.onerror=null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-24 h-20 object-contain rounded cursor-pointer bg-gray-50" />
                   )}
                   <div>
                     <div className="text-sm text-gray-800">{r.text}</div>
