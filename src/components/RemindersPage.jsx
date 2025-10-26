@@ -3,6 +3,7 @@ import { loadReminders, saveReminder, deleteReminder } from '../utils/storage'
 import { searchPhotos } from '../data/search'
 import washuImg from '../assets/washu.png'
 import winImg from '../assets/win.jpg'
+import { speak, speakWithFeedback } from '../utils/tts-clean'
 
 const PROMPTS = [
   `Do you remember 10 years ago when you won the math competition? You were the winner — be proud of yourself. That took courage, hard work, and determination. What do you remember from that day?`,
@@ -12,63 +13,7 @@ const PROMPTS = [
   `Who would you like to tell this story to? Imagine telling them now — what do you say?`
 ]
 
-function speak(text) {
-  try {
-    const s = window.speechSynthesis
-    if (!s) return
-    s.cancel()
-    const ut = new SpeechSynthesisUtterance(text)
-    ut.lang = 'en-US'
-    ut.rate = 0.95
-    s.speak(ut)
-  } catch (e) { console.warn('TTS not available', e) }
-}
-
-// Improved speak with voice selection and playback state
-function speakWithFeedback(text, onStart, onEnd) {
-  try {
-    const s = window.speechSynthesis
-    if (!s) { console.warn('SpeechSynthesis not supported'); return }
-    s.cancel()
-    const ut = new SpeechSynthesisUtterance(text)
-    ut.lang = 'en-US'
-    ut.rate = 0.95
-    ut.volume = 1
-
-    function pickVoice() {
-      try {
-        const voices = s.getVoices() || []
-        // try to pick a female-sounding voice first (heuristic by name)
-        const femaleCandidates = ['female','woman','girl','samantha','victoria','amelia','alloy','aria','eva','olivia','emma']
-        let v = voices.find(vv => femaleCandidates.some(f => vv.name && vv.name.toLowerCase().includes(f)))
-        // prefer an en-US voice if possible (but keep female preference)
-        if (!v) v = voices.find(vv => /en[-_]?us/i.test(vv.lang))
-        if (!v) v = voices[0]
-        if (v) ut.voice = v
-      } catch (e) { console.warn('voice pick failed', e) }
-    }
-
-    pickVoice()
-
-    // if voices not loaded yet, wait for them but still speak without a selected voice
-    if (!s.getVoices().length) {
-      const cb = () => { pickVoice(); try { s.removeEventListener('voiceschanged', cb) } catch(_){} }
-      try { s.addEventListener('voiceschanged', cb) } catch(_){}
-      // ensure we still call speak even if voices are slow to load
-      setTimeout(() => { try { s.speak(ut) } catch (__){} }, 50)
-    }
-
-  // tune pitch/rate to sound more natural (slightly higher pitch for a female voice, slightly slower rate)
-  try { ut.pitch = 1.12 } catch(_) {}
-  try { ut.rate = 0.92 } catch(_) {}
-  ut.onstart = () => { try { onStart && onStart() } catch(_){} }
-  ut.onend = () => { try { onEnd && onEnd() } catch(_){} }
-  ut.onerror = (e) => { console.warn('TTS error', e); try { onEnd && onEnd() } catch(_){} }
-
-    try { s.speak(ut) } catch (e) { console.warn('speak failed', e); try { onEnd && onEnd() } catch(_){} }
-    return ut
-  } catch (e) { console.warn('TTS failed', e); try { onEnd && onEnd() } catch(_){} }
-}
+// Uses the shared TTS helper in src/utils/tts.js
 
 const FALLBACK_PHOTOS = [
   { id: 'sample-1', url: winImg, title: 'Competition Winner', tags: ['winner','competition','achievement'], peopleCount: 1 },
@@ -324,7 +269,7 @@ export default function RemindersPage({ photos = [], openAlbum }) {
                       <button className="px-3 py-2 bg-rose-500 text-white rounded btn-press" onClick={()=>{
                         if (playingIdx === i) { window.speechSynthesis.cancel(); setPlayingIdx(-1); return }
                         setPlayingIdx(i)
-                        speakWithFeedback(p, () => setPlayingIdx(i), () => setPlayingIdx(-1))
+                        speakWithFeedback(p, () => setPlayingIdx(i), () => setPlayingIdx(-1), { preferFemale: true, humanize: true })
                       }}>{playingIdx===i ? 'Playing...' : 'Play'}</button>
                       <button className="px-3 py-2 bg-amber-400 text-white rounded btn-press" onClick={()=>{ setBusyIdx(i); handleSave(p, i); setCurrentIdx(ci=>ci+1) }}>{busyIdx===i ? 'Saved' : 'Save & next'}</button>
                       <button className="px-3 py-2 bg-gray-100 rounded btn-press" onClick={()=>setCurrentIdx(ci=>ci+1)}>Skip</button>
@@ -387,7 +332,7 @@ export default function RemindersPage({ photos = [], openAlbum }) {
                     const key = `saved-${idx}`
                     if (playingIdx === key) { window.speechSynthesis.cancel(); setPlayingIdx(-1); return }
                     setPlayingIdx(key)
-                    speakWithFeedback(r.text, () => setPlayingIdx(key), () => setPlayingIdx(-1))
+                    speakWithFeedback(r.text, () => setPlayingIdx(key), () => setPlayingIdx(-1), { preferFemale: true, humanize: true })
                   }}>
                     {playingIdx === `saved-${idx}` ? '🔊' : '🔈'}
                   </button>
