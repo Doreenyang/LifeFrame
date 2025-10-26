@@ -1,4 +1,4 @@
-# LifeFrame
+# ReMind
 
 A small React app to capture and jog personal memories with voice-driven prompts, reminders, and a guided memory coach.
 
