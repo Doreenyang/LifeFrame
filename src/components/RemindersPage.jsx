@@ -75,12 +75,15 @@ const FALLBACK_PHOTOS = [
   { id: 'washu-local', url: washuImg, title: 'WashU campus', tags: ['washu','campus','washington university'], peopleCount: 0 }
 ]
 
-export default function RemindersPage({ photos = [] }) {
+export default function RemindersPage({ photos = [], openAlbum }) {
   const [reminders, setReminders] = useState([])
   const [busyIdx, setBusyIdx] = useState(-1)
   const [attachedMap, setAttachedMap] = useState({})
   const [playingIdx, setPlayingIdx] = useState(-1)
   const availablePhotos = [...photos, ...FALLBACK_PHOTOS]
+  const [galleryOpen, setGalleryOpen] = useState(false)
+  const [galleryPhotos, setGalleryPhotos] = useState([])
+  const [galleryTitle, setGalleryTitle] = useState('')
 
   // swipe state for Tinder-style single-card UI
   const [translates, setTranslates] = useState({}) // idx -> x
@@ -134,6 +137,36 @@ export default function RemindersPage({ photos = [] }) {
     }
     // snap back
     setTranslates(prev => ({ ...prev, [idx]: 0 }))
+  }
+
+  function openGallery(photo) {
+    if (!photo) return
+    const tags = (photo.tags || []).map(t => t.toLowerCase())
+    const people = photo.peopleCount
+    // find related photos by overlapping tags, peopleCount, or similar title words
+    const related = availablePhotos.filter(p => {
+      if (!p || p.id === photo.id) return false
+      const ptags = (p.tags || []).map(t => t.toLowerCase())
+      const tagMatch = ptags.some(t => tags.includes(t))
+      const peopleMatch = (p.peopleCount && people && p.peopleCount === people)
+      const titleMatch = photo.title && p.title && p.title.split(' ')[0] === photo.title.split(' ')[0]
+      return tagMatch || peopleMatch || titleMatch
+    })
+    const picks = related.length ? related : availablePhotos.filter(p=>p.id!==photo.id).slice(0,6)
+    // if parent provided openAlbum, navigate to album view instead of modal
+    if (openAlbum) {
+      openAlbum(picks, photo.title || 'Related photos')
+      return
+    }
+    setGalleryPhotos(picks)
+    setGalleryTitle(photo.title || 'Related photos')
+    setGalleryOpen(true)
+  }
+
+  function closeGallery() {
+    setGalleryOpen(false)
+    setGalleryPhotos([])
+    setGalleryTitle('')
   }
 
   // keyboard support: left = dismiss, right = save
@@ -271,7 +304,7 @@ export default function RemindersPage({ photos = [] }) {
                     style={{ transform: `translateX(${x}px) rotate(${rotate}deg)`, transition: isDragging ? 'none' : 'transform 220ms ease', opacity, zIndex: 4, touchAction: 'none' }}
                   >
                     {selectedPhoto && (
-                      <img src={selectedPhoto.url} alt={selectedPhoto.title} crossOrigin="anonymous" onError={(e) => { console.warn('Image failed to load, falling back', e?.target?.src); e.target.onerror = null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-full h-40 object-cover rounded-md mb-3" />
+                      <img onClick={() => openGallery(selectedPhoto)} src={selectedPhoto.url} alt={selectedPhoto.title} crossOrigin="anonymous" onError={(e) => { console.warn('Image failed to load, falling back', e?.target?.src); e.target.onerror = null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-full h-40 object-cover rounded-md mb-3 cursor-pointer" />
                     )}
                     <div className="text-sm text-gray-800 mb-2 flex-1">{p}</div>
                     <div className="flex gap-2 items-center">
@@ -293,6 +326,30 @@ export default function RemindersPage({ photos = [] }) {
           )}
         </div>
       </div>
+      {/* Gallery modal for related photos */}
+      {galleryOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={closeGallery} />
+          <div className="relative bg-white rounded-xl shadow-xl max-w-3xl w-full mx-4 p-4" style={{ maxHeight: '80vh', overflow: 'auto' }}>
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-lg font-semibold">{galleryTitle}</div>
+              <button className="px-3 py-1 bg-gray-100 rounded" onClick={closeGallery}>Close</button>
+            </div>
+            {galleryPhotos.length === 0 ? (
+              <div className="text-sm text-gray-500">No related photos found.</div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {galleryPhotos.map((g) => (
+                  <div key={g.id} className="rounded overflow-hidden bg-gray-50">
+                    <img src={g.url} alt={g.title} className="w-full h-36 object-cover" crossOrigin="anonymous" onError={(e)=>{ e.target.onerror=null; e.target.src = FALLBACK_PHOTOS[0].url }} />
+                    <div className="p-2 text-xs text-gray-600">{g.title}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="mt-6">
         <h3 className="text-md font-semibold">Saved reminders</h3>
@@ -304,7 +361,7 @@ export default function RemindersPage({ photos = [] }) {
               <li key={idx} className="bg-white p-3 rounded shadow-sm flex justify-between items-start animate-fade-up">
                 <div className="flex gap-3">
                   {r.photo && (
-                    <img src={r.photo.url} alt={r.photo.title} crossOrigin="anonymous" onError={(e)=>{ console.warn('Saved reminder image failed to load', e?.target?.src); e.target.onerror=null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-20 h-14 object-cover rounded" />
+                    <img onClick={() => openGallery(r.photo)} src={r.photo.url} alt={r.photo.title} crossOrigin="anonymous" onError={(e)=>{ console.warn('Saved reminder image failed to load', e?.target?.src); e.target.onerror=null; e.target.src = FALLBACK_PHOTOS[0].url }} className="w-20 h-14 object-cover rounded cursor-pointer" />
                   )}
                   <div>
                     <div className="text-sm text-gray-800">{r.text}</div>

@@ -17,6 +17,7 @@ export default function App() {
   const [photos, setPhotos] = useState([])
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
+  const [albumOverride, setAlbumOverride] = useState(null)
 
   // load cached data first
   useEffect(() => {
@@ -60,11 +61,17 @@ export default function App() {
         {selected ? (
           <PhotoDetail photo={selected} onClose={() => setSelected(null)} onSave={updatePhoto} />
         ) : page === 'home' ? (
-          <AlbumPage photos={photos} query={query} onOpen={openPhoto} />
+          <AlbumPage
+            photos={albumOverride ? albumOverride.photos : photos}
+            query={query}
+            title={albumOverride ? albumOverride.title : undefined}
+            onOpen={openPhoto}
+            onBack={albumOverride ? () => { setAlbumOverride(null); setPage('reminders') } : undefined}
+          />
         ) : page === 'voice' ? (
           <VoicePage onQuery={q => setQuery(q)} query={query} />
         ) : page === 'reminders' ? (
-          <RemindersPage photos={photos} />
+          <RemindersPage photos={photos} openAlbum={(ps, title) => { setAlbumOverride({ photos: ps, title }); setPage('home') }} />
         ) : page === 'coach' ? (
           <CoachPage photos={photos} onSavePhoto={updatePhoto} />
         ) : (

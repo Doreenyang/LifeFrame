@@ -1,12 +1,17 @@
 import React from 'react'
 import { searchPhotos } from '../data/search'
 
-export default function AlbumPage({ photos, query, onOpen }) {
+export default function AlbumPage({ photos, query, onOpen, title, onBack }) {
   const results = query ? searchPhotos(query, photos) : photos
 
   return (
     <section className="max-w-3xl mx-auto py-6">
-      <h2 className="text-xl font-semibold mb-3">Your Moments</h2>
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-xl font-semibold">{title || 'Your Moments'}</h2>
+        {onBack && (
+          <button className="px-3 py-1 bg-gray-100 rounded text-sm" onClick={onBack}>Back</button>
+        )}
+      </div>
 
       {query && (
         <p className="mb-3 text-sm text-gray-600">Found {results.length} moments for "{query}".</p>
