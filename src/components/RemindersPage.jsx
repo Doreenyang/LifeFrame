@@ -209,7 +209,7 @@ export default function RemindersPage({ photos = [] }) {
   }
 
   return (
-    <section className="max-w-3xl mx-auto py-6">
+  <section className="max-w-3xl mx-auto pt-24 pb-36 px-4">
       <h2 className="text-xl font-semibold mb-3">Reminders & Memory Prompts</h2>
 
       <p className="text-sm text-gray-600 mb-4">Use these friendly prompts to jog memories — play them aloud or save a reminder to reflect later.</p>
@@ -284,8 +284,9 @@ export default function RemindersPage({ photos = [] }) {
                       <button className="px-3 py-2 bg-gray-100 rounded btn-press" onClick={()=>setCurrentIdx(ci=>ci+1)}>Skip</button>
                     </div>
                     <div className="mt-2 text-xs text-gray-400">Tip: swipe right to save, swipe left to dismiss • Use ← → keys</div>
-                    <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-xs text-gray-500">{i+1} / {PROMPTS.length}</div>
                   </div>
+                  {/* page indicator placed below card to avoid overlap with content */}
+                  <div className="text-center text-xs text-gray-500 mt-2">{i+1} / {PROMPTS.length}</div>
                 </div>
               )
             })()
