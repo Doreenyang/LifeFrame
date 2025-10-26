@@ -23,6 +23,45 @@ function speak(text) {
   } catch (e) { console.warn('TTS not available', e) }
 }
 
+// Improved speak with voice selection and playback state
+function speakWithFeedback(text, onStart, onEnd) {
+  try {
+    const s = window.speechSynthesis
+    if (!s) { console.warn('SpeechSynthesis not supported'); return }
+    s.cancel()
+    const ut = new SpeechSynthesisUtterance(text)
+    ut.lang = 'en-US'
+    ut.rate = 0.95
+    ut.volume = 1
+
+    function pickVoice() {
+      try {
+        const voices = s.getVoices() || []
+        // prefer an en-US voice
+        let v = voices.find(vv => /en[-_]?us/i.test(vv.lang)) || voices[0]
+        if (v) ut.voice = v
+      } catch (e) { console.warn('voice pick failed', e) }
+    }
+
+    pickVoice()
+
+    // if voices not loaded yet, wait for them but still speak without a selected voice
+    if (!s.getVoices().length) {
+      const cb = () => { pickVoice(); try { s.removeEventListener('voiceschanged', cb) } catch(_){} }
+      try { s.addEventListener('voiceschanged', cb) } catch(_){}
+      // ensure we still call speak even if voices are slow to load
+      setTimeout(() => { try { s.speak(ut) } catch (__){} }, 50)
+    }
+
+    ut.onstart = () => { try { onStart && onStart() } catch(_){} }
+    ut.onend = () => { try { onEnd && onEnd() } catch(_){} }
+    ut.onerror = (e) => { console.warn('TTS error', e); try { onEnd && onEnd() } catch(_){} }
+
+    try { s.speak(ut) } catch (e) { console.warn('speak failed', e); try { onEnd && onEnd() } catch(_){} }
+    return ut
+  } catch (e) { console.warn('TTS failed', e); try { onEnd && onEnd() } catch(_){} }
+}
+
 const FALLBACK_PHOTOS = [
   { id: 'sample-1', url: 'https://images.unsplash.com/photo-1503264116251-35a269479413?w=1200&q=80&auto=format&fit=crop', title: 'Old friends', tags: ['friends','two','pair'], peopleCount: 2 },
   { id: 'sample-2', url: 'https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?w=1200&q=80&auto=format&fit=crop', title: 'School building', tags: ['school','building'], peopleCount: 0 },
@@ -40,6 +79,7 @@ export default function RemindersPage({ photos = [] }) {
   const [reminders, setReminders] = useState([])
   const [busyIdx, setBusyIdx] = useState(-1)
   const [attachedMap, setAttachedMap] = useState({})
+  const [playingIdx, setPlayingIdx] = useState(-1)
   const availablePhotos = [...photos, ...FALLBACK_PHOTOS]
 
   // swipe state for Tinder-style single-card UI
@@ -51,6 +91,11 @@ export default function RemindersPage({ photos = [] }) {
 
   // pointer-based swipe handlers (mouse & touch)
   function onPointerStart(e, idx) {
+    // don't start a drag if user pressed an interactive element inside the card
+    try {
+      const tg = e.target
+      if (tg && tg.closest && (tg.closest('button') || tg.closest('a') || tg.closest('input') || tg.closest('textarea'))) return
+    } catch(_) {}
     try { e.currentTarget?.setPointerCapture?.(e.pointerId) } catch (__) {}
     // store start position for this pointer
     dragRef.current = { startX: e.clientX, pointerId: e.pointerId }
@@ -230,7 +275,11 @@ export default function RemindersPage({ photos = [] }) {
                     )}
                     <div className="text-sm text-gray-800 mb-2 flex-1">{p}</div>
                     <div className="flex gap-2 items-center">
-                      <button className="px-3 py-2 bg-rose-500 text-white rounded btn-press" onClick={()=>speak(p)}>Play</button>
+                      <button className="px-3 py-2 bg-rose-500 text-white rounded btn-press" onClick={()=>{
+                        if (playingIdx === i) { window.speechSynthesis.cancel(); setPlayingIdx(-1); return }
+                        setPlayingIdx(i)
+                        speakWithFeedback(p, () => setPlayingIdx(i), () => setPlayingIdx(-1))
+                      }}>{playingIdx===i ? 'Playing...' : 'Play'}</button>
                       <button className="px-3 py-2 bg-amber-400 text-white rounded btn-press" onClick={()=>{ setBusyIdx(i); handleSave(p, i); setCurrentIdx(ci=>ci+1) }}>{busyIdx===i ? 'Saved' : 'Save & next'}</button>
                       <button className="px-3 py-2 bg-gray-100 rounded btn-press" onClick={()=>setCurrentIdx(ci=>ci+1)}>Skip</button>
                     </div>
@@ -262,7 +311,15 @@ export default function RemindersPage({ photos = [] }) {
                   </div>
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <button className="px-2 py-1 bg-gray-100 rounded btn-press" onClick={()=>speak(r.text)}>🔈</button>
+                  <button className="px-2 py-1 bg-gray-100 rounded btn-press" onClick={()=>{
+                    // saved-list play button
+                    const key = `saved-${idx}`
+                    if (playingIdx === key) { window.speechSynthesis.cancel(); setPlayingIdx(-1); return }
+                    setPlayingIdx(key)
+                    speakWithFeedback(r.text, () => setPlayingIdx(key), () => setPlayingIdx(-1))
+                  }}>
+                    {playingIdx === `saved-${idx}` ? '🔊' : '🔈'}
+                  </button>
                   <button className="px-2 py-1 bg-red-100 text-red-700 rounded btn-press" onClick={()=>handleDelete(idx)}>Delete</button>
                 </div>
               </li>
