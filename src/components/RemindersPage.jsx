@@ -37,8 +37,12 @@ function speakWithFeedback(text, onStart, onEnd) {
     function pickVoice() {
       try {
         const voices = s.getVoices() || []
-        // prefer an en-US voice
-        let v = voices.find(vv => /en[-_]?us/i.test(vv.lang)) || voices[0]
+        // try to pick a female-sounding voice first (heuristic by name)
+        const femaleCandidates = ['female','woman','girl','samantha','victoria','amelia','alloy','aria','eva','olivia','emma']
+        let v = voices.find(vv => femaleCandidates.some(f => vv.name && vv.name.toLowerCase().includes(f)))
+        // prefer an en-US voice if possible (but keep female preference)
+        if (!v) v = voices.find(vv => /en[-_]?us/i.test(vv.lang))
+        if (!v) v = voices[0]
         if (v) ut.voice = v
       } catch (e) { console.warn('voice pick failed', e) }
     }
@@ -53,9 +57,12 @@ function speakWithFeedback(text, onStart, onEnd) {
       setTimeout(() => { try { s.speak(ut) } catch (__){} }, 50)
     }
 
-    ut.onstart = () => { try { onStart && onStart() } catch(_){} }
-    ut.onend = () => { try { onEnd && onEnd() } catch(_){} }
-    ut.onerror = (e) => { console.warn('TTS error', e); try { onEnd && onEnd() } catch(_){} }
+  // tune pitch/rate to sound more natural (slightly higher pitch for a female voice, slightly slower rate)
+  try { ut.pitch = 1.12 } catch(_) {}
+  try { ut.rate = 0.92 } catch(_) {}
+  ut.onstart = () => { try { onStart && onStart() } catch(_){} }
+  ut.onend = () => { try { onEnd && onEnd() } catch(_){} }
+  ut.onerror = (e) => { console.warn('TTS error', e); try { onEnd && onEnd() } catch(_){} }
 
     try { s.speak(ut) } catch (e) { console.warn('speak failed', e); try { onEnd && onEnd() } catch(_){} }
     return ut

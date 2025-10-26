@@ -9,8 +9,38 @@ function speak(text) {
     s.cancel()
     const ut = new SpeechSynthesisUtterance(text)
     ut.lang = 'en-US'
-    ut.rate = 0.95
-    s.speak(ut)
+    // prefer slightly slower rate and a warmer pitch for a more natural female tone
+    try { ut.rate = 0.92 } catch(_) {}
+    try { ut.pitch = 1.12 } catch(_) {}
+
+    // pick a female-sounding voice if available
+    try {
+      const voices = s.getVoices() || []
+      const femaleCandidates = ['female','woman','girl','samantha','victoria','amelia','aria','eva','olivia','emma']
+      let v = voices.find(vv => femaleCandidates.some(f => vv.name && vv.name.toLowerCase().includes(f)))
+      if (!v) v = voices.find(vv => /en[-_]?us/i.test(vv.lang))
+      if (!v) v = voices[0]
+      if (v) ut.voice = v
+    } catch (e) { console.warn('voice pick failed', e) }
+
+    // if voices aren't loaded yet, schedule speak and also listen for voiceschanged
+    if (!s.getVoices().length) {
+      const cb = () => {
+        try {
+          const voices = s.getVoices() || []
+          const femaleCandidates = ['female','woman','girl','samantha','victoria','amelia','aria','eva','olivia','emma']
+          let v = voices.find(vv => femaleCandidates.some(f => vv.name && vv.name.toLowerCase().includes(f)))
+          if (!v) v = voices.find(vv => /en[-_]?us/i.test(vv.lang))
+          if (!v) v = voices[0]
+          if (v) ut.voice = v
+        } catch(_){}
+        try { s.removeEventListener('voiceschanged', cb) } catch(_){}
+      }
+      try { s.addEventListener('voiceschanged', cb) } catch(_){}
+      setTimeout(() => { try { s.speak(ut) } catch(_){} }, 60)
+    }
+
+    try { s.speak(ut) } catch (e) { console.warn('speak failed', e) }
   } catch (e) {
     console.warn('TTS not available', e)
   }
