@@ -69,7 +69,7 @@ export default function App() {
             onBack={albumOverride ? () => { setAlbumOverride(null); setPage('reminders') } : undefined}
           />
         ) : page === 'voice' ? (
-          <VoicePage onQuery={q => setQuery(q)} query={query} />
+          <VoicePage photos={photos} onQuery={q => setQuery(q)} query={query} />
         ) : page === 'reminders' ? (
           <RemindersPage photos={photos} openAlbum={(ps, title) => { setAlbumOverride({ photos: ps, title }); setPage('home') }} />
         ) : page === 'coach' ? (
