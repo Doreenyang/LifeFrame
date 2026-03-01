@@ -1,52 +1,75 @@
-# ReMind
+# LifeFrame
 
-A small React app to capture and jog personal memories with voice-driven prompts, reminders, and a guided memory coach.
+This repository contains two distinct parts:
 
-Built with: JavaScript (React 18), Vite, @vitejs/plugin-react, Tailwind CSS, PostCSS, Autoprefixer, Web Speech API (SpeechSynthesis & SpeechRecognition), localStorage, Node.js / npm, GitHub Actions, GitHub Pages, local JSON + image assets, custom utils (tts, storage, ai)
+- **frontend/** – the existing React + Vite user interface (formerly named ReMind).
+- **server/** – a new Node.js/Express backend written in TypeScript that will power the application via REST APIs.
 
-Quick start
+The goal is to build out the backend first and keep the front end / any future plugins or extensions decoupled from the server logic.
 
-Prerequisites: Node.js (16+), npm
+## Getting Started
 
-Install and run locally:
+### Prerequisites
+
+- Node.js 18+ (includes npm)
+- Git
+
+### Frontend (UI)
 
 ```bash
+cd frontend
 npm ci
-npm run dev
+npm run dev      # start development server
+npm run build    # create production build
 ```
 
-Build for production:
+Development commands use the `package.json` inside `frontend/`.
+
+### Server (API)
+
+1. Copy `.env.example` to `.env` and adjust values if needed.
+2. Install dependencies and start the dev server:
+
+```bash
+cd server
+npm ci
+npm run dev      # starts ts-node-dev on port 4000 by default
+```
+
+3. Build for production and run:
 
 ```bash
 npm run build
-npm run preview   # preview the built output locally
+npm start
 ```
 
-Voice & behavior notes
+The API exposes a basic health check at `GET /` and a sample users router at `GET/POST /api/users`.
 
-- The Voice tab shows an inline result photo after you finish speaking. Voice input does NOT change the Home filter automatically — use the "Clear all (Home & Voice)" button on the Voice tab to clear both the voice result and any persisted Home filter.
-- Reminders supports swipe-right to save and swipe-left to skip. Keyboard ← → are supported.
+## Project Structure
 
-Deployment
-
-- This project is set up to publish to GitHub Pages via the workflow in `.github/workflows/gh-pages.yml`. The workflow builds the app and deploys the `dist/` folder.
-- If Actions deployment fails with git/auth errors, you can publish manually with:
-
-```bash
-npm run build
-npx gh-pages -d dist -b gh-pages -m "chore: publish site"
+```
+/
+├─ frontend/          # React/Vite application
+│   ├─ src/
+│   ├─ package.json
+│   └─ ...
+├─ server/            # TypeScript/Express API
+│   ├─ src/
+│   │   ├─ index.ts
+│   │   └─ routes/
+│   ├─ package.json
+│   └─ tsconfig.json
+└─ README.md          # you are here
 ```
 
-Troubleshooting
+## Roadmap
 
-- If `npm run dev` reports `'vite' is not recognized`:
-	- Ensure dependencies are installed (`npm ci`).
-	- If the problem persists, run `npx vite` to invoke the local binary, or check `node_modules/.bin` is available in your PATH for your shell.
+1. Expand backend with authentication, photo storage, reminders, and AI endpoints.
+2. Add a database (Postgres, MongoDB, etc.) and ORM (Prisma/TypeORM/Mongoose).
+3. Enhance the frontend to consume the API; or wrap it in Electron/Mobile/etc.
+4. Publish SDK/CLI/plugin layers for other platforms.
 
-Contributing
+Contributions and suggestions are welcome!
 
-PRs, issues, and suggestions welcome. Small UI/UX tweaks, accessibility improvements, and tests (Playwright/Jest) are good next steps.
+MIT License
 
-License
-
-MIT

@@ -1,2 +1,10 @@
 /node_modules
 /dist
+
+# front/backend installs
+/frontend/node_modules
+/server/node_modules
+
+# build outputs
+/frontend/dist
+/server/dist
