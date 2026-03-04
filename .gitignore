@@ -8,3 +8,6 @@
 # build outputs
 /frontend/dist
 /server/dist
+
+./env
+server/.env
